@@ -15,7 +15,7 @@ def new_note(request, show_pk):
 
     show = get_object_or_404(Show, pk=show_pk)
 
-    if request.method == 'POST' :
+    if request.method == 'POST':
 
         form = NewNoteForm(request.POST)
         if form.is_valid():
@@ -28,11 +28,10 @@ def new_note(request, show_pk):
                 note.save()
                 return redirect('lmn:note_detail', note_pk=note.pk)
 
-    else :
+    else:
         form = NewNoteForm()
 
-    return render(request, 'lmn/notes/new_note.html' , { 'form' : form , 'show':show })
-
+    return render(request, 'lmn/notes/new_note.html', {'form': form, 'show': show})
 
 
 def latest_notes(request):
@@ -49,7 +48,22 @@ def notes_for_show(request, show_pk):   # pk = show pk
     return render(request, 'lmn/notes/note_list.html', {'show': show, 'notes':notes } )
 
 
-
 def note_detail(request, note_pk):
     note = get_object_or_404(Note, pk=note_pk)
     return render(request, 'lmn/notes/note_detail.html' , {'note' : note })
+
+
+def note_edit(request, note_pk):
+    note = get_object_or_404(Note, pk=note_pk)
+    if request.method == "POST":
+        form = NewNoteForm(request.POST, instance=note)
+        if form.is_valid():
+            note = form.save(commit=False)
+            note.user = request.user
+            note.show = note
+            note.posted_date = timezone.now()
+            note.save()
+            return redirect('lmn:note_edit', pk=note_pk)
+        else:
+            note = NewNoteForm(instance=note)
+        return render(request, 'lmn/notes/note_detail.html', {'note': note})
